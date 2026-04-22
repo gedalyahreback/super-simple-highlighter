@@ -23,6 +23,7 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
      * @prop {boolean} unselectAfterHighlight
      * @prop {boolean} enableHighlightBoxShadow
      * @prop {number} highlightBackgroundAlpha
+     * @prop {boolean} forceSafeBlendMode
      * @memberof Controller
      */
    
@@ -56,6 +57,10 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
 
       this.scope.highlightClassName = StringUtils.newUUID()
       this.scope.highlightDefinitions = []
+      this.scope.paletteColors = [
+        '#FF8080', '#FFD2AA', '#FFFFAA', '#AAFFAA', '#AAFFFF', '#FFAAFF', '#777777',
+        '#FF5E5B', '#FFB86B', '#FFE066', '#7DFF7A', '#6BF0FF', '#7F8CFF', '#C77DFF',
+      ]
 
       this.styleSheetManager = new StyleSheetManager(document).init()
 
@@ -70,6 +75,7 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
         this.onClickRemoveStyle,
         this.onClickCreateNewStyle,
         this.onClickResetToDefaultStyles,
+        this.onClickPaletteColor,
       ]) {
 				this.scope[func.name] = func.bind(this)
       }
@@ -97,6 +103,7 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
             ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT,
             ChromeStorage.KEYS.ENABLE_HIGHLIGHT_BOX_SHADOW,
             ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA,
+            ChromeStorage.KEYS.FORCE_SAFE_BLEND_MODE,
         ])
       }).then(items => {
         this.scope.options = items
@@ -250,6 +257,8 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
           // close dialog
           $(Controller.SELECTOR.MODAL).modal('hide')
 
+          this.normalizeStyleDefinition(this.scope.modal.highlightDefinition)
+
           // store update
           return this.scope.modal.highlightDefinition ? 
             new ChromeHighlightStorage().set(this.scope.modal.highlightDefinition) :
@@ -294,6 +303,8 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
           // close dialog
           $(Controller.SELECTOR.MODAL).modal('hide')
 
+          this.normalizeStyleDefinition(this.scope.modal.highlightDefinition)
+
           // store update
           return this.scope.modal.highlightDefinition ? 
             new ChromeHighlightStorage().set(this.scope.modal.highlightDefinition) :
@@ -315,6 +326,35 @@ angular.module('stylesControllers', []).controller('styles', ["$scope", function
       }
 
       return new ChromeHighlightStorage().removeAll()
+    }
+
+    /**
+     * Clicked a palette color swatch in style modal
+     *
+     * @param {string} colorHex
+     * @memberof Controller
+     */
+    onClickPaletteColor(colorHex) {
+      if (!this.scope.modal || !this.scope.modal.highlightDefinition) {
+        return
+      }
+
+      this.scope.modal.highlightDefinition.style['background-color'] = colorHex
+    }
+
+    /**
+     * Normalize style values before persist
+     *
+     * @param {Object} highlightDefinition
+     * @memberof Controller
+     */
+    normalizeStyleDefinition(highlightDefinition) {
+      if (!highlightDefinition || !highlightDefinition.style) {
+        return
+      }
+
+      const value = parseFloat(highlightDefinition.style['background-alpha'])
+      highlightDefinition.style['background-alpha'] = isNaN(value) ? 1 : Math.max(0.1, Math.min(1, value))
     }
     
   } // end class

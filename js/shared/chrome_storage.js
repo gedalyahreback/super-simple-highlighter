@@ -123,6 +123,7 @@ class ChromeStorage {
 ChromeStorage.KEYS = {
   ENABLE_HIGHLIGHT_BOX_SHADOW: 'enableHighlightBoxShadow',
   HIGHLIGHT_BACKGROUND_ALPHA: 'highlightBackgroundAlpha',
+  FORCE_SAFE_BLEND_MODE: 'forceSafeBlendMode',
   FILE_ACCESS_REQUIRED_WARNING_DISMISSED: 'fileAccessRequiredWarningDismissed',
   UNSELECT_AFTER_HIGHLIGHT: 'unselectAfterHighlight',
   POPUP_HIGHLIGHT_TEXT_MAX_LENGTH: 'popupHighlightTextMaxLength',
@@ -152,6 +153,7 @@ ChromeStorage.HIGHLIGHT_SORT_BY_VALUES = {
 ChromeStorage.DEFAULTS = {
   [ChromeStorage.KEYS.ENABLE_HIGHLIGHT_BOX_SHADOW]: true,
   [ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA]: 0.8,
+  [ChromeStorage.KEYS.FORCE_SAFE_BLEND_MODE]: false,
   [ChromeStorage.KEYS.FILE_ACCESS_REQUIRED_WARNING_DISMISSED]: false,
   [ChromeStorage.KEYS.UNSELECT_AFTER_HIGHLIGHT]: false,
   [ChromeStorage.KEYS.POPUP_HIGHLIGHT_TEXT_MAX_LENGTH]: 512,
