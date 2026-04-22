@@ -8,6 +8,18 @@
     "highlight_background_colour": {
         "message": "Background Colour"
     },
+    "highlight_opacity_per_style": {
+        "message": "Highlight opacity (per style)"
+    },
+    "highlight_overlap_blend_mode": {
+        "message": "Overlap blend mode"
+    },
+    "highlight_overlap_blend_mode_help": {
+        "message": "Use Multiply for Acrobat-like overlap blending."
+    },
+    "highlight_force_safe_blend_mode": {
+        "message": "Prefer stable overlap rendering (disable blend modes)"
+    },
     "color_title_grey": {
         "message": "Grey"
     }

@@ -111,6 +111,15 @@
 										<div class="form-group">
 											<label for="backgroundColour">{{ 'highlight_background_colour' | i18n }}</label>
 											<input type="color" class="form-control" id="backgroundColour" ng-model="modal.highlightDefinition.style['background-color']">
+											<div class="ssh-palette-swatches">
+												<button
+													type="button"
+													class="ssh-palette-swatch"
+													ng-repeat="color in paletteColors track by $index"
+													ng-style="{'background-color': color}"
+													ng-click="onClickPaletteColor(color)"
+													title="{{color}}"></button>
+											</div>
 										</div>
 
 										<!--Text Colour-->
@@ -126,6 +135,29 @@
 												<input type="checkbox" ng-model="modal.highlightDefinition.inherit_style_color">
 												{{ 'highlight_text_colour_inherit' | i18n }}
 											</label>
+										</div>
+
+										<!--Blend Mode-->
+										<div class="form-group">
+											<label for="blendMode">{{ 'highlight_overlap_blend_mode' | i18n }}</label>
+											<select class="form-control" id="blendMode" ng-model="modal.highlightDefinition.style['mix-blend-mode']">
+												<option value="normal">Normal</option>
+												<option value="multiply">Multiply</option>
+												<option value="screen">Screen</option>
+												<option value="overlay">Overlay</option>
+												<option value="darken">Darken</option>
+												<option value="lighten">Lighten</option>
+											</select>
+											<span class="help-block">{{ 'highlight_overlap_blend_mode_help' | i18n }}</span>
+										</div>
+
+										<!--Per-style background alpha-->
+										<div class="form-group">
+											<label for="backgroundAlpha">{{ 'highlight_opacity_per_style' | i18n }}</label>
+											<input type="range" class="form-control" id="backgroundAlpha"
+												min="0.1" max="1" step="0.05"
+												ng-model="modal.highlightDefinition.style['background-alpha']">
+											<div class="help-block">{{(modal.highlightDefinition.style['background-alpha'] || 1) | number:2}}</div>
 										</div>
 
 										<!--Shortcut help-->
@@ -185,6 +217,14 @@
 							<label>
 								<input type="checkbox" ng-model="options.enableHighlightBoxShadow">
 								{{ 'highlight_box_shadow' | i18n }}
+							</label>
+						</div>
+
+						<!--Force stable overlap rendering-->
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" ng-model="options.forceSafeBlendMode">
+								{{ 'highlight_force_safe_blend_mode' | i18n }}
 							</label>
 						</div>
 

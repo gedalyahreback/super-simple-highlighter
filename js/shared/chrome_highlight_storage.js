@@ -48,7 +48,9 @@ class HighlightDefinitionFactory {
   static createObject(title, {
     className = StringUtils.newUUID({ beginWithLetter: true }),
     backgroundColor = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['background-color'],
-    color = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['color']
+    color = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['color'],
+    blendMode = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['mix-blend-mode'],
+    backgroundAlpha = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['background-alpha']
   } = {}) {
     return {
       title: title,
@@ -58,6 +60,8 @@ class HighlightDefinitionFactory {
       style: {
         'background-color': backgroundColor,
         'color': color,
+        'mix-blend-mode': blendMode,
+        'background-alpha': backgroundAlpha,
       }
     }
   }
@@ -78,7 +82,9 @@ HighlightDefinitionFactory.DEFAULT_VALUES = {
   [HighlightDefinitionFactory.KEYS.INHERIT_STYLE_COLOR]: false,
   [HighlightDefinitionFactory.KEYS.STYLE]: {
     'background-color': '#ff8080',
-    'color': '#000000'
+    'color': '#000000',
+    'mix-blend-mode': 'multiply',
+    'background-alpha': 0.7,
   }
 }
 
@@ -137,7 +143,65 @@ class ChromeHighlightStorage extends ChromeStorage {
     return super.get({
       [ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS]: (defaults && this.defaultHighlightDefinitions) || null,
       [ChromeHighlightStorage.KEYS.SHARED_HIGHLIGHT_STYLE]: (defaults && ChromeHighlightStorage.SHARED_HIGHLIGHT_STYLE) || null
+    }).then(items => {
+      const key = ChromeHighlightStorage.KEYS.HIGHLIGHT_DEFINITIONS
+      const migrated = this.migrateHighlightDefinitions(items[key])
+
+      if (!migrated.changed) {
+        return items
+      }
+
+      items[key] = migrated.highlightDefinitions
+
+      return super.set(migrated.highlightDefinitions, key).then(() => items)
     })
+  }
+
+  /**
+   * Backfill missing style fields for compatibility with newer versions.
+   *
+   * @param {HighlightDefinitionFactory.HighlightDefinition[]} highlightDefinitions
+   * @returns {{ changed: boolean, highlightDefinitions: HighlightDefinitionFactory.HighlightDefinition[] }}
+   */
+  migrateHighlightDefinitions(highlightDefinitions) {
+    if (!Array.isArray(highlightDefinitions)) {
+      return {
+        changed: false,
+        highlightDefinitions,
+      }
+    }
+
+    let changed = false
+
+    const next = highlightDefinitions.map(hd => {
+      if (!hd || !hd.style) {
+        return hd
+      }
+
+      let entryChanged = false
+      const style = Object.assign({}, hd.style)
+
+      if (!style['mix-blend-mode']) {
+        style['mix-blend-mode'] = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['mix-blend-mode']
+        entryChanged = true
+      }
+
+      if (typeof style['background-alpha'] === 'undefined') {
+        style['background-alpha'] = HighlightDefinitionFactory.DEFAULT_VALUES[HighlightDefinitionFactory.KEYS.STYLE]['background-alpha']
+        entryChanged = true
+      }
+
+      if (entryChanged) {
+        changed = true
+      }
+
+      return entryChanged ? Object.assign({}, hd, { style }) : hd
+    })
+
+    return {
+      changed,
+      highlightDefinitions: next,
+    }
   }
 
   /**

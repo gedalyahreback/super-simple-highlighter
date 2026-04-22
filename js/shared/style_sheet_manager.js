@@ -153,13 +153,44 @@ class StyleSheetManager {
 			rules['color'] += suffix
 		}
 
-		return new ChromeStorage().get(ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA).then(a => {
+		return new ChromeStorage().get([
+			ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA,
+			ChromeStorage.KEYS.FORCE_SAFE_BLEND_MODE,
+		]).then(items => {
+			const fallbackAlpha = items[ChromeStorage.KEYS.HIGHLIGHT_BACKGROUND_ALPHA]
+			const forceSafeBlendMode = !!items[ChromeStorage.KEYS.FORCE_SAFE_BLEND_MODE]
+			const styleAlpha = parseFloat(rules['background-alpha'])
+			const alpha = !isNaN(styleAlpha) ? Math.max(0, Math.min(1, styleAlpha)) : (fallbackAlpha || 1)
+
+			// keep this as a config field only, not emitted as css rule
+			delete rules['background-alpha']
+
+			// ensure blend mode is predictable
+			if (rules['mix-blend-mode'] && !StyleSheetManager.SUPPORTED_BLEND_MODES.has(rules['mix-blend-mode'])) {
+				rules['mix-blend-mode'] = 'normal'
+			}
+
+			// optional compatibility mode for sites with problematic host CSS
+			if (forceSafeBlendMode) {
+				rules['mix-blend-mode'] = 'normal'
+			}
+
+			// sanitize against runtime support in current document
+			if (
+				rules['mix-blend-mode'] &&
+				typeof CSS !== 'undefined' &&
+				typeof CSS.supports === 'function' &&
+				!CSS.supports('mix-blend-mode', rules['mix-blend-mode'])
+			) {
+				rules['mix-blend-mode'] = 'normal'
+			}
+
 			// format CSS background color in rgba format
 			rules['background-color'] = `rgba(${[
 				match[1],
 				match[2],
 				match[3],
-				a || 1
+				alpha
 			].map(i => (typeof i === 'string' ? parseInt(i, 16) : i)).join(', ')})${suffix}`
 
 			// delete existing rule, if it exists
@@ -295,3 +326,12 @@ StyleSheetManager.ANIMATION_KEYFRAMES = {
 		}
 	`
 }
+
+StyleSheetManager.SUPPORTED_BLEND_MODES = new Set([
+	'normal',
+	'multiply',
+	'screen',
+	'overlay',
+	'darken',
+	'lighten',
+])

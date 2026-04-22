@@ -10,6 +10,21 @@ input[type="color"] {
     cursor: pointer;   
 }
 
+.ssh-palette-swatches {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(24px, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.ssh-palette-swatch {
+    width: 100%;
+    min-height: 24px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
 .token {
     margin: 0 0 12pt 0;
     font-size: 2rem !important;
